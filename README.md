@@ -38,4 +38,4 @@ optional arguments:
 
 ## Library commands
 
-@@include[pdoc](docs/hunterdouglasplatinum/hunterdouglasplatinum.md)
+The library documentation (somewhat) is here - [pdoc](docs/hunterdouglasplatinum/hunterdouglasplatinum.md)
