@@ -19,7 +19,6 @@ def main():
 
     if args.ip:
         hub = HunterDouglasPlatinumHub(args.ip)
-        print(str(hub.get_room(name='Master Bedroom').get_shades()))
         if(args.shade):
             shade = hub.get_shade(name=args.shade)
             if(shade):
