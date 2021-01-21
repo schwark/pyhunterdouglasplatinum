@@ -24,8 +24,8 @@ class HunterDouglasPlatinumHub:
 
     Methods
     -------
-    get_shade(name=None, id=None)
-        Returns a HunterDouglasPlatinumShade object for the shade with name or id
+    get_shade(name=None, id=None, room=None)
+        Returns a HunterDouglasPlatinumShade object for the shade with name or id, or all shades from room with room id
     get_scene(name=None, id=None)
         Returns a HunterDouglasPlatinumScene object for the shade with name or id
     get_room(name=None, id=None)
@@ -135,11 +135,13 @@ class HunterDouglasPlatinumHub:
                     shade.set_state(state)
         return True
 
-    def get_shade(self, name=None, id=None):
+    def get_shade(self, name=None, id=None, room=None):
         if(name):
             return self.shades[name] if name in self.shades else None
         if(id):
             return next((v for (k,v) in self.shades.items() if v.id == id), None)
+        if(room):
+            return [value for (key, value) in self.shades.items() if value.room == room]
         return None    
         
     def get_scene(self, name=None, id=None):
@@ -311,4 +313,7 @@ class HunterDouglasPlatinumRoom:
         self.hub = hub
         self.id = id
         self.name = name
+
+    def get_shades(self):
+        return self.hub.get_shade(room=self.id)
   
