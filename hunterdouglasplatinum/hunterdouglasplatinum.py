@@ -98,22 +98,31 @@ class HunterDouglasPlatinumHub:
                 shade_id = line[3:5]
                 state = line[-4:-1]
                 state = str(int((int(state) / 255.) * 16))
-                shade = self.get_shade_by_id(shade_id)
+                shade = self.get_shade(id=shade_id)
                 if shade:
                     shade.set_state(state)
         return True
 
-    def get_shade_by_id(self, id):
-        return next((v for (k,v) in self.shades.items() if v.id == id), None)
-
-    def get_shade(self, name):
-        return self.shades[name] if name in self.shades else None
+    def get_shade(self, name=None, id=None):
+        if(name):
+            return self.shades[name] if name in self.shades else None
+        if(id):
+            return next((v for (k,v) in self.shades.items() if v.id == id), None)
+        return None    
         
-    def get_scene(self, name):
-        return self.scenes[name] if name in self.scenes else None
+    def get_scene(self, name=None, id=None):
+        if(name):
+            return self.scenes[name] if name in self.scenes else None
+        if(id):
+            return next((v for (k,v) in self.scenes.items() if v.id == id), None)
+        return None    
         
-    def get_room(self, name):
-        return self.rooms[name] if name in self.rooms else None
+    def get_room(self, name=None, id=None):
+        if(name):
+            return self.rooms[name] if name in self.rooms else None
+        if(id):
+            return next((v for (k,v) in self.rooms.items() if v.id == id), None)
+        return None    
         
 
 class HunterDouglasPlatinumShade:
