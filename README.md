@@ -38,7 +38,7 @@ optional arguments:
 
 ## Library commands
 
-
+pdoc for the core library is here - [PDoc](https://github.com/schwark/pyhunterdouglasplatinum/html)
 ```
 
 ```
