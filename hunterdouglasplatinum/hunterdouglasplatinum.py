@@ -7,6 +7,7 @@ import logging
 import time
 
 logging.basicConfig(level=logging.INFO)
+
 class HunterDouglasPlatinumHub:
     """
     Hub class for the Hunter Douglas Platinum - for all hub interactions
@@ -22,14 +23,6 @@ class HunterDouglasPlatinumHub:
     timeout : int, optional
         the timeout value (in seconds) to use for socket communications to hub, defaults to 10s        
 
-    Methods
-    -------
-    get_shade(name=None, id=None, room=None)
-        Returns a HunterDouglasPlatinumShade object for the shade with name or id, or all shades from room with room id
-    get_scene(name=None, id=None)
-        Returns a HunterDouglasPlatinumScene object for the shade with name or id
-    get_room(name=None, id=None)
-        Returns a HunterDouglasPlatinumRoom object for the shade with name or id
     """
 
 
@@ -42,19 +35,16 @@ class HunterDouglasPlatinumHub:
         self.shades = {}
         self.update()
 
-    def discover(self):
-        pass
-
-    def create_socket(self):
+    def __create_socket(self):
         try:
             sock = socket.create_connection((self.ip, self.port), timeout=self.timeout)
-            helo = self.recv_until(sock, 'Shade Controller')
+            helo = self.__recv_until(sock, 'Shade Controller')
         except socket.error:
             sock.close()
             sock = None
         return sock
 
-    def recv_until(self, sock, sentinel=None):
+    def __recv_until(self, sock, sentinel=None):
         info = ""
         while True:
             try:
@@ -68,13 +58,29 @@ class HunterDouglasPlatinumHub:
             if not chunk: break
         return info
         
-    def send_command(self, message, sentinel=None, sock=None):
+    def send_command(self, message, sentinel=None):
+        """
+            Sends a command to the controller and reads response till sentinel.
+       
+            ...
+            
+            Parameters
+            ----------
+            message : str
+                Message to send to controller            
+            sentinel : str, optional
+                Ending sentinel phrase to look for to end reading of response
+            
+            Returns
+            -------
+            Response from the controller : str
+        """
+ 
         content = None
         try:
-            if not sock:
-                sock = self.create_socket()
-                sock.sendall(message.encode())
-                content = self.recv_until(sock, sentinel)
+            sock = self.__create_socket()
+            sock.sendall(message.encode())
+            content = self.__recv_until(sock, sentinel)
         except socket.error:
             pass
         finally:
@@ -82,10 +88,17 @@ class HunterDouglasPlatinumHub:
                 sock.close()
         return content
 
-    def is_alive(self,sock):
-        return self.send_command("$dmy", "ack", sock)
-
     def update(self):
+        """
+            Updates the current state of the controller and shades and scenes
+       
+            ...
+                    
+            Returns
+            -------
+            Error message if applicable else empty : str
+        """
+ 
         logging.info('updating state...')
         info = self.send_command("$dat", "upd01-")
         if not info:
@@ -133,9 +146,28 @@ class HunterDouglasPlatinumHub:
                 logging.debug('updating shade state for shade '+shade_id+' to '+str(state)+' for shade '+str(shade))
                 if shade:
                     shade.set_state(state)
-        return True
+        return ""
 
     def get_shade(self, name=None, id=None, room=None):
+        """
+            Returns a shade or list of shades by id, name or room.
+       
+            ...
+            
+            Parameters
+            ----------
+            name : str, optional
+                Name of shade to find            
+            id : int, optional
+                Id of shade to find
+            room : int, optional
+                Room Id of shade(s) to find
+            
+            Returns
+            -------
+            A shade or list of shades : [] or HunterDouglasPlatinumShade
+        """
+ 
         if(name):
             return self.shades[name] if name in self.shades else None
         if(id):
@@ -145,6 +177,23 @@ class HunterDouglasPlatinumHub:
         return None    
         
     def get_scene(self, name=None, id=None):
+        """
+            Returns a scene by id, name.
+       
+            ...
+            
+            Parameters
+            ----------
+            name : str, optional
+                Name of scene to find            
+            id : int, optional
+                Id of scene to find
+            
+            Returns
+            -------
+            A scene : HunterDouglasPlatinumScene
+        """
+
         if(name):
             return self.scenes[name] if name in self.scenes else None
         if(id):
@@ -152,6 +201,23 @@ class HunterDouglasPlatinumHub:
         return None    
         
     def get_room(self, name=None, id=None):
+        """
+            Returns a room by id, name.
+       
+            ...
+            
+            Parameters
+            ----------
+            name : str, optional
+                Name of room to find            
+            id : int, optional
+                Id of room to find
+            
+            Returns
+            -------
+            A room : HunterDouglasPlatinumRoom
+        """
+        
         if(name):
             return self.rooms[name] if name in self.rooms else None
         if(id):
@@ -209,12 +275,27 @@ class HunterDouglasPlatinumShade:
     def set_state(self, state):
         self.state = state
 
-    def move_shade(self, move_value):
+    def __move_shade(self, move_value):
         content = self.hub.send_command("$pss%s-04-%03d" % (self.id, move_value), "done")
         content += self.hub.send_command("$rls", "act00-00-")
         return content
 
     def set_level(self, hd_value):
+        """
+            Moves a shade to a certain level
+       
+            ...
+            
+            Parameters
+            ----------
+            hd_value : str or int
+                One of 'up', 'down' or number percentage open      
+            
+            Returns
+            -------
+            success : bool
+        """
+        
         if "up" == hd_value:
             move_value = 255
         elif "down" == hd_value:
@@ -230,7 +311,7 @@ class HunterDouglasPlatinumShade:
         num_tries = 0
         while(not self.is_level(hd_value) and num_tries < 3):
             logging.info('moving shade to '+hd_value+' try # '+str(num_tries+1))
-            self.move_shade(move_value)
+            self.__move_shade(move_value)
             time.sleep(20)
             self.hub.update()
             num_tries += 1
@@ -238,18 +319,77 @@ class HunterDouglasPlatinumShade:
         return num_tries < 3
 
     def open(self):
-        self.set_level('up')
+        """
+            Moves a shade to open state
+       
+            ...
+            
+            
+            Returns
+            -------
+            success : bool
+        """
+        
+        return self.set_level('up')
 
     def close(self):
-        self.set_level('down')
+        """
+            Moves a shade to closed state
+       
+            ...
+            
+            
+            Returns
+            -------
+            success : bool
+        """
+        
+        return self.set_level('down')
 
     def is_up(self):
+        """
+            Checks if shade is up
+       
+            ...
+            
+            
+            Returns
+            -------
+            is_up : bool
+        """
+        
         return self.is_level('up')
 
     def is_down(self):
+        """
+            Checks if shade is down
+       
+            ...
+            
+            
+            Returns
+            -------
+            is_down : bool
+        """
+        
         return self.is_level('down')
 
     def is_level(self, state):
+        """
+            Checks if shade is at a certain level
+       
+            ...
+            
+            Parameters
+            ----------
+            hd_value : str or int
+                One of 'up', 'down' or number percentage open      
+            
+            Returns
+            -------
+            if it is at stated level : bool
+        """
+        
         logging.info('checking state '+state+' against self '+str(self.state))
         result = False
         if('up' == state):
@@ -290,6 +430,16 @@ class HunterDouglasPlatinumScene:
         self.name = name
   
     def run(self):
+        """
+            Runs the scene
+       
+            ...
+                        
+            Returns
+            -------
+            response message : str
+        """
+        
         return self.hub.send_command("$inm%s-" % (self.id), "act00-00-")
 
 class HunterDouglasPlatinumRoom:

@@ -16,45 +16,84 @@ Classes
     port : int, optional
         the port number of the hub - defaults to 522
     timeout : int, optional
-        the timeout value (in seconds) to use for socket communications to hub, defaults to 10s        
-    
-    Methods
-    -------
-    get_shade(name=None, id=None, room=None)
-        Returns a HunterDouglasPlatinumShade object for the shade with name or id, or all shades from room with room id
-    get_scene(name=None, id=None)
-        Returns a HunterDouglasPlatinumScene object for the shade with name or id
-    get_room(name=None, id=None)
-        Returns a HunterDouglasPlatinumRoom object for the shade with name or id
+        the timeout value (in seconds) to use for socket communications to hub, defaults to 10s
 
     ### Methods
 
-    `create_socket(self)`
-    :
-
-    `discover(self)`
-    :
-
     `get_room(self, name=None, id=None)`
-    :
+    :   Returns a room by id, name.
+        
+        ...
+        
+        Parameters
+        ----------
+        name : str, optional
+            Name of room to find            
+        id : int, optional
+            Id of room to find
+        
+        Returns
+        -------
+        A room : HunterDouglasPlatinumRoom
 
     `get_scene(self, name=None, id=None)`
-    :
+    :   Returns a scene by id, name.
+        
+        ...
+        
+        Parameters
+        ----------
+        name : str, optional
+            Name of scene to find            
+        id : int, optional
+            Id of scene to find
+        
+        Returns
+        -------
+        A scene : HunterDouglasPlatinumScene
 
     `get_shade(self, name=None, id=None, room=None)`
-    :
+    :   Returns a shade or list of shades by id, name or room.
+        
+        ...
+        
+        Parameters
+        ----------
+        name : str, optional
+            Name of shade to find            
+        id : int, optional
+            Id of shade to find
+        room : int, optional
+            Room Id of shade(s) to find
+        
+        Returns
+        -------
+        A shade or list of shades : [] or HunterDouglasPlatinumShade
 
-    `is_alive(self, sock)`
-    :
-
-    `recv_until(self, sock, sentinel=None)`
-    :
-
-    `send_command(self, message, sentinel=None, sock=None)`
-    :
+    `send_command(self, message, sentinel=None)`
+    :   Sends a command to the controller and reads response till sentinel.
+        
+        ...
+        
+        Parameters
+        ----------
+        message : str
+            Message to send to controller            
+        sentinel : str, optional
+            Ending sentinel phrase to look for to end reading of response
+        
+        Returns
+        -------
+        Response from the controller : str
 
     `update(self)`
-    :
+    :   Updates the current state of the controller and shades and scenes
+        
+        ...
+                
+        Returns
+        -------
+        Error message if applicable else empty : str
 
 `HunterDouglasPlatinumRoom(hub, id, name)`
 :   Room class for the Hunter Douglas Platinum - for all scene interactions
@@ -98,7 +137,13 @@ Classes
     ### Methods
 
     `run(self)`
-    :
+    :   Runs the scene
+        
+        ...
+                    
+        Returns
+        -------
+        response message : str
 
 `HunterDouglasPlatinumShade(hub, id, name, room)`
 :   Shade class for the Hunter Douglas Platinum - for all shade interactions
@@ -137,25 +182,72 @@ Classes
     ### Methods
 
     `close(self)`
-    :
+    :   Moves a shade to closed state
+        
+        ...
+        
+        
+        Returns
+        -------
+        success : bool
 
     `is_down(self)`
-    :
+    :   Checks if shade is down
+        
+        ...
+        
+        
+        Returns
+        -------
+        is_down : bool
 
     `is_level(self, state)`
-    :
+    :   Checks if shade is at a certain level
+        
+        ...
+        
+        Parameters
+        ----------
+        hd_value : str or int
+            One of 'up', 'down' or number percentage open      
+        
+        Returns
+        -------
+        if it is at stated level : bool
 
     `is_up(self)`
-    :
-
-    `move_shade(self, move_value)`
-    :
+    :   Checks if shade is up
+        
+        ...
+        
+        
+        Returns
+        -------
+        is_up : bool
 
     `open(self)`
-    :
+    :   Moves a shade to open state
+        
+        ...
+        
+        
+        Returns
+        -------
+        success : bool
 
     `set_level(self, hd_value)`
-    :
+    :   Moves a shade to a certain level
+        
+        ...
+        
+        Parameters
+        ----------
+        hd_value : str or int
+            One of 'up', 'down' or number percentage open      
+        
+        Returns
+        -------
+        success : bool
 
     `set_state(self, state)`
     :

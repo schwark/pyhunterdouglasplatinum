@@ -38,4 +38,4 @@ optional arguments:
 
 ## Library commands
 
-The library documentation (somewhat) is here - [pdoc](docs/hunterdouglasplatinum/hunterdouglasplatinum.md)
+The library documentation (somewhat) is here - [pdoc](https://github.com/schwark/pyhunterdouglasplatinum/blob/main/docs/hunterdouglasplatinum/hunterdouglasplatinum.md)
