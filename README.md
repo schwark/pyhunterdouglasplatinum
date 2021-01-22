@@ -9,7 +9,7 @@ You can install the Real Python Feed Reader from [PyPI](https://pypi.org/project
 
     pip install pyhunterdouglasplatinum
 
-The module is supported on Python 2.7, as well as Python 3.4 and above.
+The module is supported on Python 3.4 and above.
 
 ## How to use
 
