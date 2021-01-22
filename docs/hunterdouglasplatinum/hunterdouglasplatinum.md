@@ -18,6 +18,22 @@ Classes
     timeout : int, optional
         the timeout value (in seconds) to use for socket communications to hub, defaults to 10s
 
+    ### Static methods
+
+    `create(ip, port=522, timeout=10)`
+    :   Class method for the creation of the HunterDouglasPlatinumHub - use this for proper initialization instead of new
+        
+        ...
+        
+        Attributes
+        ----------
+        ip : str
+            a string representing the ip address of the hub
+        port : int, optional
+            the port number of the hub - defaults to 522
+        timeout : int, optional
+            the timeout value (in seconds) to use for socket communications to hub, defaults to 10s
+
     ### Methods
 
     `get_room(self, name=None, id=None)`
