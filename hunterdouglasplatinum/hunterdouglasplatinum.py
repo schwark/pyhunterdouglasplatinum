@@ -244,21 +244,6 @@ class HunterDouglasPlatinumShade:
     state : int
         the current level of the shade (number from 0-255)
 
-
-    Methods
-    -------
-    set_level(hd_value)
-        Moves the shade to specified position - can be a percentage integer, or the values 'up' or 'down'
-    open()
-        Opens the Shade - convenience function that wraps set_level
-    close()
-        Closes the Shade - convenience function that wraps set_level
-    is_level(hd_value)
-        Checks if shade is in specified position - can be a percentage integer, or the values 'up' or 'down'
-    is_up()
-        Checks if shade is up - convenience function that wraps is_level
-    is_down()
-        Checks if shade is down - convenience function that wraps is_level
     """
 
 
