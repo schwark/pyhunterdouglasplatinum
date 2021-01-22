@@ -127,12 +127,6 @@ Classes
         the id of this scene on the controller
     name : str
         the name of the scene on the controller
-    
-    
-    Methods
-    -------
-    run()
-        Runs the Scene
 
     ### Methods
 
