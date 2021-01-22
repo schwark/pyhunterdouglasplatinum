@@ -4,9 +4,9 @@
 import socket
 import re
 import logging
-import time
+import asyncio
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 class HunterDouglasPlatinumHub:
     """
@@ -25,7 +25,6 @@ class HunterDouglasPlatinumHub:
 
     """
 
-
     def __init__(self, ip, port=522, timeout=10):
         self.ip = ip
         self.port = port
@@ -33,32 +32,30 @@ class HunterDouglasPlatinumHub:
         self.rooms = {}
         self.scenes = {}
         self.shades = {}
-        self.update()
 
-    def __create_socket(self):
-        try:
-            sock = socket.create_connection((self.ip, self.port), timeout=self.timeout)
-            helo = self.__recv_until(sock, 'Shade Controller')
-        except socket.error:
-            sock.close()
-            sock = None
-        return sock
+    @classmethod
+    async def create(cls, ip, port=522, timeout=10):
+        """
+        Class method for the creation of the HunterDouglasPlatinumHub - use this for proper initialization instead of new
 
-    def __recv_until(self, sock, sentinel=None):
-        info = ""
-        while True:
-            try:
-                chunk = sock.recv(1)
-            except socket.timeout:
-                logging.debug('socket timeout')
-                break
-            info += chunk.decode('cp437')
-            logging.debug('info is now '+info)
-            if info.endswith(sentinel): break
-            if not chunk: break
-        return info
+        ...
+
+        Attributes
+        ----------
+        ip : str
+            a string representing the ip address of the hub
+        port : int, optional
+            the port number of the hub - defaults to 522
+        timeout : int, optional
+            the timeout value (in seconds) to use for socket communications to hub, defaults to 10s        
+
+        """
+
+        hub = HunterDouglasPlatinumHub(ip, port, timeout)
+        await hub.update()
+        return hub
         
-    def send_command(self, message, sentinel=None):
+    async def send_command(self, message, sentinel=None):
         """
             Sends a command to the controller and reads response till sentinel.
        
@@ -77,18 +74,24 @@ class HunterDouglasPlatinumHub:
         """
  
         content = None
+        reader = None
+        writer = None
         try:
-            sock = self.__create_socket()
-            sock.sendall(message.encode())
-            content = self.__recv_until(sock, sentinel)
-        except socket.error:
-            pass
+            reader, writer = await asyncio.open_connection(self.ip, self.port)
+            await reader.readuntil('Shade Controller'.encode())
+            writer.write(message.encode())
+            await writer.drain()
+            content = await reader.readuntil(sentinel.encode())
+            content = content.decode('cp437')
+        except Exception as e:
+            logging.error('Socket error '+str(e))
         finally:
-            if sock:
-                sock.close()
+            if(writer):
+                writer.close()
+                await writer.wait_closed()
         return content
 
-    def update(self):
+    async def update(self):
         """
             Updates the current state of the controller and shades and scenes
        
@@ -100,11 +103,13 @@ class HunterDouglasPlatinumHub:
         """
  
         logging.info('updating state...')
-        info = self.send_command("$dat", "upd01-")
+        info = await self.send_command("$dat", "upd01-")
         if not info:
             msg = "Unable to get data about windows and scenes from Gateway"
             return msg
 
+        logging.debug('hub response is :')
+        logging.debug(info)
         prefix = None
         lines = re.split(r'[\n\r]+', info)
 
@@ -122,12 +127,14 @@ class HunterDouglasPlatinumHub:
                 room_id = line[3:5]
                 room_name = line.split('-')[-1].strip()
                 if(not room_name in self.rooms):
+                    logging.debug('creating room '+room_name)
                     self.rooms[room_name] = HunterDouglasPlatinumRoom(hub=self, name=room_name, id=int(room_id))
             elif line.startswith("$cm"):
                 # name of scene
                 scene_id = line[3:5]
                 scene_name = line.split('-')[-1].strip()
                 if(not scene_name in self.scenes):
+                    logging.debug('creating scene '+scene_name)
                     self.scenes[scene_name] = HunterDouglasPlatinumScene(hub=self, name=scene_name, id=int(scene_id))
             elif line.startswith("$cs"):
                 # name of a shade
@@ -136,6 +143,7 @@ class HunterDouglasPlatinumHub:
                 shade_name = parts[-1].strip()
                 room_id = parts[1]
                 if(not shade_name in self.shades):
+                    logging.debug('creating shade '+shade_name)
                     self.shades[shade_name] = HunterDouglasPlatinumShade(hub=self, name=shade_name, id=int(shade_id), room=int(room_id))
             elif line.startswith("$cp"):
                 # state of a shade
@@ -260,12 +268,12 @@ class HunterDouglasPlatinumShade:
     def set_state(self, state):
         self.state = state
 
-    def __move_shade(self, move_value):
-        content = self.hub.send_command("$pss%s-04-%03d" % (self.id, move_value), "done")
-        content += self.hub.send_command("$rls", "act00-00-")
+    async def __move_shade(self, move_value):
+        content = await self.hub.send_command("$pss%s-04-%03d" % (self.id, move_value), "done")
+        content += await self.hub.send_command("$rls", "act00-00-")
         return content
 
-    def set_level(self, hd_value):
+    async def set_level(self, hd_value):
         """
             Moves a shade to a certain level
        
@@ -296,9 +304,9 @@ class HunterDouglasPlatinumShade:
         num_tries = 0
         while(not self.is_level(hd_value) and num_tries < 3):
             logging.info('moving shade to '+hd_value+' try # '+str(num_tries+1))
-            self.__move_shade(move_value)
-            time.sleep(20)
-            self.hub.update()
+            await self.__move_shade(move_value)
+            await asyncio.sleep(20)
+            await self.hub.update()
             num_tries += 1
 
         return num_tries < 3
@@ -409,7 +417,7 @@ class HunterDouglasPlatinumScene:
         self.id = id
         self.name = name
   
-    def run(self):
+    async def run(self):
         """
             Runs the scene
        
@@ -420,7 +428,7 @@ class HunterDouglasPlatinumScene:
             response message : str
         """
         
-        return self.hub.send_command("$inm%s-" % (self.id), "act00-00-")
+        return await self.hub.send_command("$inm%s-" % (self.id), "act00-00-")
 
 class HunterDouglasPlatinumRoom:
     """
