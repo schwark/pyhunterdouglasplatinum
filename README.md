@@ -17,7 +17,7 @@ The module can also be used at the command line using
 
     python -m hunterdouglasplatinum <params>
 
-The paramters that the command line tool takes are in the available via --help
+The parameters that the command line tool takes are in the available via --help
 
 ```
 ❯ python -m hunterdouglasplatinum --help
