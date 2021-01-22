@@ -41,15 +41,15 @@ optional arguments:
 Example usage:
 
 ```
-        hub = HunterDouglasPlatinumHub('192.168.1.100')
+        hub = await HunterDouglasPlatinumHub.create('192.168.1.100')
         shade = hub.get_shade(name='Master Bedroom 1')
         if(shade):
-            shade.set_level('up')
-            shade.set_level('50')
-            shade.set_level('down')
+            await shade.set_level('up')
+            await shade.set_level('50')
+            await shade.set_level('down')
         scene = hub.get_scene(name='Good Morning')
         if(scene):
-            scene.run()
+            await scene.run()
 
 ```
 
