@@ -417,11 +417,6 @@ class HunterDouglasPlatinumScene:
     name : str
         the name of the scene on the controller
 
-
-    Methods
-    -------
-    run()
-        Runs the Scene
     """
 
     def __init__(self, hub, id, name):
