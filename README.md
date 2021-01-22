@@ -38,4 +38,19 @@ optional arguments:
 
 ## Library commands
 
+Example usage:
+
+```
+        hub = HunterDouglasPlatinumHub('192.168.1.100')
+        shade = hub.get_shade(name='Master Bedroom 1')
+        if(shade):
+            shade.set_level('up')
+            shade.set_level('50')
+            shade.set_level('down')
+        scene = hub.get_scene(name='Good Morning')
+        if(scene):
+            scene.run()
+
+```
+
 The library documentation (somewhat) is here - [pdoc](https://github.com/schwark/pyhunterdouglasplatinum/blob/main/docs/hunterdouglasplatinum/hunterdouglasplatinum.md)
